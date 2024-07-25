@@ -4,23 +4,23 @@ This script can run on FMOS to send automatically generated backup files to a NS
 ## Setup
 ### Create Virtual Environment and Install Libraries
 This script a Python Virtual Environment (venv) to be able to run on FMOS.
-Use the command below to create a venv in PostBackupNFS/.
+1. Use the command below to create a venv in PostBackupNFS/.
 ```console
 /usr/lib/firemon/devpackfw/bin/python -m venv PostBackupNFS
 ```
-Activate venv.
+2. Activate venv.
 ```console
 source ~/PostBackupNFS/bin/activate
 ```
-Install pip.
+3. Install pip.
 ```console
 python3 ~/PostBackupNFS/bin/pip install -U pip
 ```
-Now we can install the required libraries.
+4. Now we can install the required libraries.
 ```console
 python3 ~/PostBackupNFS/bin/pip install logging pyNfsClient 
 ```
-Exit the python virtual environemnt:
+5. Exit the python virtual environemnt:
 ```console
 deactivate
 ```
@@ -41,26 +41,26 @@ NFS_SERVER = 'nfs_server_address'
 NFS_SHARE = '/path/to/nfs/share'
 ```
 ### Test the script by sending a file.
-Create a file to send named `testfile`.
+1. Create a file to send named `testfile`.
 ```consle
 echo testdata > testfile
 ```
-Run script to send the `testfile`.
+2. Run script to send the `testfile`.
 ```console
 /home/firemon/PostBackupNFS/bin/python /home/firemon/PostBackupNFS/PostBackupNFS.py
 ```
-Look for errors in `nfs_transfer.log`.
+3. Look for errors in `nfs_transfer.log`.
 ### Setup FireMon Post-Backup Action
-Login to the FireMon Server Control Panel usng https on port 55555.
-Navigate to OS > Backup > Post-Backup Actions.
-Click the `+` icon under "Run a command on the local machine".
-In the "Command to run:" field enter the following (be sure to reference the absolue path in your environment).
+1. Login to the FireMon Server Control Panel usng https on port 55555.
+2. Navigate to OS > Backup > Post-Backup Actions.
+3. Click the `+` icon under "Run a command on the local machine".
+4. In the "Command to run:" field enter the following (be sure to reference the absolue path in your environment).
 ```console
 cd /home/firemon $$ /home/firemon/PostBackupNFS/bin/python /home/firemon/PostBackupNFS/PostBackupNFS.py ${BACKUP}
 ```
-Click `Stage Changes` then `Apply Configuration`.
-Test the post-backup action from CLI using the command below.
+5. Click `Stage Changes` then `Apply Configuration`.
+6. Test the post-backup action from CLI using the command below.
 ```console
 fmos backup --prune
 ```
-Look for errors in `nfs_transfer.log`.
+7. Look for errors in `nfs_transfer.log`.
