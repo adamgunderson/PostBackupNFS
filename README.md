@@ -41,11 +41,11 @@ NFS_SERVER = 'nfs_server_address'
 NFS_SHARE = '/path/to/nfs/share'
 ```
 ### Test the script by sending a file.
-Create a file to send.
+Create a file to send named `testfile`.
 ```consle
 echo testdata > testfile
 ```
-Run script to send testfile.
+Run script to send the `testfile`.
 ```console
 /home/firemon/PostBackupNFS/bin/python /home/firemon/PostBackupNFS/PostBackupNFS.py
 ```
