@@ -31,7 +31,7 @@ cd ~
 ```console
 pwd
 ```
-In the steps going forward use absolute paths, replacing `~/` with the output of `pwd`. If the command examples ahead, assume the output of `pwd` is `/home/firemon`.
+In the steps going forward use absolute paths, replacing `~/` with the output of `pwd`. If the command examples ahead, assume the output of `pwd` is `/home/admin`.
 ### Configure the script.
 Copy the `PostBackupNFS.py` file to ~`/PostBackupNFS/PostBackupNFS.py`.
 Adjust the follwoing configuration varialbe to match your environment.
@@ -47,7 +47,7 @@ echo testdata > testfile
 ```
 2. Run script to send the `testfile`.
 ```console
-/home/firemon/PostBackupNFS/bin/python /home/firemon/PostBackupNFS/PostBackupNFS.py
+/home/admin/PostBackupNFS/bin/python /home/admin/PostBackupNFS/PostBackupNFS.py
 ```
 3. Look for errors in `nfs_transfer.log`.
 ### Setup FireMon Post-Backup Action
@@ -56,7 +56,7 @@ echo testdata > testfile
 3. Click the `+` icon under "Run a command on the local machine".
 4. In the "Command to run:" field enter the following (be sure to reference the absolue path in your environment).
 ```console
-cd /home/firemon $$ /home/firemon/PostBackupNFS/bin/python /home/firemon/PostBackupNFS/PostBackupNFS.py ${BACKUP}
+cd /admin/firemon $$ /home/admin/PostBackupNFS/bin/python /home/admin/PostBackupNFS/PostBackupNFS.py ${BACKUP}
 ```
 5. Click `Stage Changes` then `Apply Configuration`.
 6. Test the post-backup action from CLI using the command below.
