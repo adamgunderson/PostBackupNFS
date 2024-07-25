@@ -53,7 +53,7 @@ Look for errors in `nfs_transfer.log`.
 ### Setup FireMon Post-Backup Action
 Login to the FireMon Server Control Panel usng https on port 55555.
 Navigate to OS > Backup > Post-Backup Actions.
-Click the `+` icon under "Run a command on the local machine"
+Click the `+` icon under "Run a command on the local machine".
 In the "Command to run:" field enter the following (be sure to reference the absolue path in your environment).
 ```console
 cd /home/firemon $$ /home/firemon/PostBackupNFS/bin/python /home/firemon/PostBackupNFS/PostBackupNFS.py ${BACKUP}
