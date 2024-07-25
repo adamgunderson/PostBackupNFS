@@ -1,5 +1,5 @@
-# PostBackupNFS
-FMOS post-backup script to the send backup file to a NSF location. 
+# FMOS Post-Backup Script to send Backup to NFS
+This script can run on FMOS to send automatically generated backup files to a NSF location. 
 
 ## Setup
 ### Create Virtual Environment and Install Libraries
