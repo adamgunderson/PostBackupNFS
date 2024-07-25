@@ -1,55 +1,110 @@
 import sys
-import os
 import logging
 from logging.handlers import RotatingFileHandler
-from pyNfsClient import NFSv3
+from pyNfsClient import (Portmap, Mount, NFSv3, MNT3_OK, NFS_PROGRAM, NFS_V3, NFS3_OK, DATA_SYNC)
 
-# NFS Configuration
-NFS_SERVER = 'nfs_server_address'
-NFS_SHARE = '/path/to/nfs/share'
+#########################
+## BEGIN CONFIGURATION ##
+#########################
 
-# Log Configuration
-LOG_FILE = 'nfs_transfer.log'
-LOG_MAX_SIZE = 5 * 1024 * 1024  # 5 MB
-LOG_BACKUP_COUNT = 3  # Keep up to 3 backup log files
+NFS_HOST = "192.168.1.100"
+MOUNT_PATH = "/nfsshare"
 
-# Setup logging with rotation
-handler = RotatingFileHandler(LOG_FILE, maxBytes=LOG_MAX_SIZE, backupCount=LOG_BACKUP_COUNT)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger = logging.getLogger()
+# Authentication configuration
+AUTH_FLAVOR = 1  # The authentication flavor numbers are managed by IANA. Here is the official table: http://www.iana.org/assignments/rpc-authentication-numbers/rpc-authentication-numbers.xml
+AUTH_MACHINE_NAME = "host1"
+AUTH_UID = 0
+AUTH_GID = 0
+
+# Logging Configuration
+LOG_FILE = 'post_backup_nfs.log'
+MAX_LOG_SIZE = 10 * 1024 * 1024  # 10 MB
+BACKUP_COUNT = 5
+
+#######################
+## END CONFIGURATION ##
+#######################
+
+
+
+
+
+
+
+
+logger = logging.getLogger('PostBackupNFS')
 logger.setLevel(logging.DEBUG)
+handler = RotatingFileHandler(LOG_FILE, maxBytes=MAX_LOG_SIZE, backupCount=BACKUP_COUNT)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
 logger.addHandler(handler)
-logger.info('Starting file transfer to NFS share.')
 
-def send_file_to_nfs(local_file_path):
+AUTH = {
+    "flavor": AUTH_FLAVOR,
+    "machine_name": AUTH_MACHINE_NAME,
+    "uid": AUTH_UID,
+    "gid": AUTH_GID,
+    "aux_gid": list(),
+}
+def main(file_path):
+    logger.info("Starting NFS backup process")
+
+    portmap = None
+    mount = None
+    nfs3 = None
+
     try:
-        # Connect to the NFS server
-        nfs = NFSv3(NFS_SERVER, port=2049, mount_path=NFS_SHARE)
-        logger.info(f'Connected to {NFS_SERVER}.')
+        portmap = Portmap(NFS_HOST, timeout=3600)
+        portmap.connect()
+        logger.info("Connected to Portmap")
 
-        # Open local file
-        with open(local_file_path, 'rb') as local_file:
-            file_data = local_file.read()
-            remote_file_path = os.path.join(NFS_SHARE, os.path.basename(local_file_path))
+        mnt_port = portmap.getport(Mount.program, Mount.program_version)
+        mount = Mount(host=NFS_HOST, port=mnt_port, timeout=3600)
+        mount.connect()
+        logger.info("Connected to Mount")
 
-            # Write data to NFS share
-            nfs.write(remote_file_path, file_data, overwrite=True)
-            logger.info(f'File {local_file_path} transferred to {remote_file_path} on {NFS_SERVER}.')
+        mnt_res = mount.mnt(MOUNT_PATH, AUTH)
+        if mnt_res["status"] == MNT3_OK:
+            logger.info("Mount successful")
+            root_fh = mnt_res["mountinfo"]["fhandle"]
+            
+            nfs_port = portmap.getport(NFS_PROGRAM, NFS_V3)
+            nfs3 = NFSv3(NFS_HOST, nfs_port, 3600)
+            nfs3.connect()
+            logger.info("Connected to NFSv3")
+
+            file_name = file_path.split('/')[-1]
+            lookup_res = nfs3.lookup(root_fh, file_name, AUTH)
+            if lookup_res["status"] == NFS3_OK:
+                fh = lookup_res["resok"]["object"]["data"]
+                with open(file_path, 'rb') as f:
+                    content = f.read()
+                write_res = nfs3.write(fh, offset=0, count=len(content), content=content, stable_how=DATA_SYNC, auth=AUTH)
+                if write_res["status"] == NFS3_OK:
+                    logger.info("File written successfully to NFS")
+                else:
+                    logger.error("Write failed")
+            else:
+                logger.error("Lookup failed")
+        else:
+            logger.error("Mount failed")
 
     except Exception as e:
-        logger.error(f'Failed to transfer file: {e}')
-        print(f"Error: {e}")
+        logger.exception("An error occurred during the NFS backup process")
+    finally:
+        if nfs3:
+            nfs3.disconnect()
+        if mount:
+            mount.umnt(MOUNT_PATH, AUTH)
+            mount.disconnect()
+        if portmap:
+            portmap.disconnect()
+        logger.info("NFS backup process completed")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("Usage: uploadNFS.py <backup_file_path>")
+        print("Usage: python PostBackupNFS.py <file_path>")
         sys.exit(1)
 
-    backup_file_path = sys.argv[1]
-    if not os.path.isfile(backup_file_path):
-        print(f"Error: File {backup_file_path} does not exist.")
-        sys.exit(1)
-
-    send_file_to_nfs(backup_file_path)
-    logger.info('File transfer completed.')
+    file_path = sys.argv[1]
+    main(file_path)
