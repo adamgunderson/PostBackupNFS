@@ -33,7 +33,7 @@ pwd
 ```
 In the steps going forward use absolute paths, replacing `~/` with the output of `pwd`.
 ### Configure the script.
-Copy `PostBackupNFS.py` to ~`/PostBackupNFS/PostBackupNFS.py`.
+Copy the `PostBackupNFS.py` file to ~`/PostBackupNFS/PostBackupNFS.py`.
 Adjust the follwoing configuration varialbe to match your environment.
 ```python
 # NFS Configuration
