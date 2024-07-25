@@ -47,7 +47,7 @@ echo testdata > testfile
 ```
 2. Run script to send the `testfile`.
 ```console
-/home/admin/PostBackupNFS/bin/python /home/admin/PostBackupNFS/PostBackupNFS.py
+/home/admin/PostBackupNFS/bin/python /home/admin/PostBackupNFS/PostBackupNFS.py testfile
 ```
 3. Look for errors in `nfs_transfer.log`.
 ### Setup FireMon Post-Backup Action
